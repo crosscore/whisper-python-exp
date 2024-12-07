@@ -45,7 +45,7 @@ def load_whisper_model():
         model_path = download_whisper_model()
 
     # モデルのインスタンスを作成
-    model = whisper.load_model("base")
+    model = whisper.load_model("medium")
     # 保存された重みを読み込む
     state_dict = torch.load(str(model_path))
     model.load_state_dict(state_dict)
@@ -166,6 +166,21 @@ def initialize_whisper():
             st.session_state.whisper_model = load_whisper_model()
             st.session_state.recognition_results = []
 
+def transcribe_audio(file_path, whisper_model):
+    """音声ファイルを文字起こしする"""
+    try:
+        result = whisper_model.transcribe(str(file_path), language='ja', fp16=False)
+        return result["text"]
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        return None
+
+def save_transcription_to_file(file_path, transcription):
+    """文字起こし結果をテキストファイルに保存する"""
+    txt_file_path = file_path.with_suffix(".txt")
+    with open(txt_file_path, "w", encoding="utf-8") as f:
+        f.write(transcription)
+
 def main():
     st.title("音声録音・認識アプリ")
 
@@ -214,24 +229,43 @@ def main():
     audio_files = [f for f in os.listdir(AUDIO_DIR) if f.endswith('.wav')]
     if audio_files:
         for audio_file in sorted(audio_files, reverse=True):
-            col1, col2 = st.columns([3, 1])
+            # 3つのカラムを作成
+            col1, col2, col3 = st.columns([3, 1, 1])
+
+            file_path = AUDIO_DIR / audio_file
+            duration = get_audio_duration(file_path)
 
             with col1:
                 # 音声ファイルの情報表示
-                file_path = AUDIO_DIR / audio_file
-                duration = get_audio_duration(file_path)
                 st.text(f"{audio_file} (録音時間: {duration}秒)")
-
                 # 音声再生用のプレイヤー
-                with open(file_path, 'rb') as audio_file:
-                    st.audio(audio_file.read(), format='audio/wav')
+                with open(file_path, 'rb') as audio_file_open:
+                    st.audio(audio_file_open.read(), format='audio/wav')
 
             with col2:
                 # 削除ボタン
                 if st.button("🗑️ 削除", key=f"delete_{audio_file}"):
                     os.remove(file_path)
+                    # 対応するテキストファイルも削除
+                    txt_file_path = file_path.with_suffix(".txt")
+                    if txt_file_path.exists():
+                        os.remove(txt_file_path)
                     st.success("ファイルを削除しました")
                     st.rerun()
+
+            with col3:
+                # 文字起こしボタン
+                if st.button("📝 文字起こし", key=f"transcribe_{audio_file}"):
+                    with st.spinner("文字起こし中..."):
+                        transcription = transcribe_audio(file_path, st.session_state.whisper_model)
+                        if transcription:
+                            save_transcription_to_file(file_path, transcription)
+                            st.success("文字起こしが完了しました")
+                            # 文字起こし結果を表示
+                            st.text_area("文字起こし結果", transcription, height=200)
+                        else:
+                            st.error("文字起こしに失敗しました")
+
     else:
         st.info("録音ファイルはまだありません")
 

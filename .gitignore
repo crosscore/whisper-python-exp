@@ -164,3 +164,4 @@ cython_debug/
 .DS_Store
 *.wav
 model/
+recorded_audio/
