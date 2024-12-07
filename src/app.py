@@ -56,6 +56,14 @@ def save_audio(audio_data, filename):
         wf.setframerate(SAMPLE_RATE)
         wf.writeframes(audio_data.tobytes())
 
+def get_audio_duration(file_path):
+    """WAVファイルの再生時間を取得する"""
+    with wave.open(file_path, 'rb') as wf:
+        frames = wf.getnframes()
+        rate = wf.getframerate()
+        duration = frames / float(rate)
+        return round(duration, 1)
+
 def main():
     st.title("音声録音アプリ")
 
@@ -95,12 +103,29 @@ def main():
             chunk = st.session_state.audio_recorder.audio_queue.get()
             st.session_state.audio_recorder.audio_data.append(chunk)
 
-    # 保存された音声ファイルの一覧表示
+    # 保存された音声ファイルの一覧表示と再生機能
     st.subheader("録音済みファイル")
     audio_files = [f for f in os.listdir(AUDIO_DIR) if f.endswith('.wav')]
     if audio_files:
         for audio_file in sorted(audio_files, reverse=True):
-            st.text(audio_file)
+            col1, col2 = st.columns([3, 1])
+
+            with col1:
+                # 音声ファイルの情報表示
+                file_path = os.path.join(AUDIO_DIR, audio_file)
+                duration = get_audio_duration(file_path)
+                st.text(f"{audio_file} (録音時間: {duration}秒)")
+
+                # 音声再生用のプレイヤー
+                with open(file_path, 'rb') as audio_file:
+                    st.audio(audio_file.read(), format='audio/wav')
+
+            with col2:
+                # 削除ボタン
+                if st.button("🗑️ 削除", key=f"delete_{audio_file}"):
+                    os.remove(file_path)
+                    st.success("ファイルを削除しました")
+                    st.rerun()
     else:
         st.info("録音ファイルはまだありません")
 
