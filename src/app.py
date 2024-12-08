@@ -36,32 +36,53 @@ def main():
     st.title("Voice Recorder & Transcription")
 
     initialize_whisper()
-
-    if 'audio_recorder' not in st.session_state:
-        st.session_state.audio_recorder = AudioRecorder()
+    initialize_session_state()
 
     # Recording controls
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        if not st.session_state.audio_recorder.is_recording:
+        if not st.session_state.audio_recorder.is_recording and not st.session_state.realtime_recorder.is_recording:
             if st.button("🎤 Start Recording"):
                 st.session_state.audio_recorder.start_recording()
                 st.rerun()
 
     with col2:
-        if st.session_state.audio_recorder.is_recording:
-            if st.button("⏹ Stop Recording"):
-                recorded_audio = st.session_state.audio_recorder.stop_recording()
-                if recorded_audio is not None:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = AUDIO_DIR / f"audio_{timestamp}.wav"
-                    save_audio(recorded_audio, filename)
-                    st.success(f"Recording saved: {filename}")
+        if not st.session_state.audio_recorder.is_recording and not st.session_state.realtime_recorder.is_recording:
+            if st.button("🎤 Start Real-time Transcription"):
+                st.session_state.realtime_transcriber.clear()
+                st.session_state.realtime_text = ""
+                st.session_state.realtime_recorder.set_transcription_callback(update_transcription)
+                st.session_state.realtime_recorder.start_recording()
                 st.rerun()
 
+    with col3:
+        if st.session_state.audio_recorder.is_recording or st.session_state.realtime_recorder.is_recording:
+            if st.button("⏹ Stop Recording"):
+                if st.session_state.audio_recorder.is_recording:
+                    recorded_audio = st.session_state.audio_recorder.stop_recording()
+                    if recorded_audio is not None:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = AUDIO_DIR / f"audio_{timestamp}.wav"
+                        save_audio(recorded_audio, filename)
+                        st.success(f"Recording saved: {filename}")
+                if st.session_state.realtime_recorder.is_recording:
+                    recorded_audio = st.session_state.realtime_recorder.stop_recording()
+                    if recorded_audio is not None:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = AUDIO_DIR / f"audio_realtime_{timestamp}.wav"
+                        save_audio(recorded_audio, filename)
+                        save_transcription_to_file(filename, st.session_state.realtime_text)
+                        st.success(f"Recording saved: {filename}")
+                st.rerun()
+
+    # Display recording status and real-time transcription
     if st.session_state.audio_recorder.is_recording:
         st.warning("Recording in progress...")
+    elif st.session_state.realtime_recorder.is_recording:
+        st.warning("Real-time transcription in progress...")
+        st.text_area("Real-time Transcription", st.session_state.realtime_text,
+                    height=150, key="realtime_output")
 
     # Display recorded files
     st.subheader("Recorded Files")
@@ -72,6 +93,8 @@ def main():
 
     if audio_files:
         for audio_file in sorted(audio_files, reverse=True):
+            if audio_file.startswith('temp_chunk_'):  # Skip temporary chunk files
+                continue
             file_path = AUDIO_DIR / audio_file
             txt_file_path = file_path.with_suffix(".txt")
             duration = get_audio_duration(file_path)
