@@ -1,4 +1,4 @@
-# config.py
+# src/config.py
 from pathlib import Path
 
 # PROJECT DIRECTORY SETTINGS

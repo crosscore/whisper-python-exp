@@ -1,11 +1,11 @@
-# transcription.py
+# src/transcription.py
 import whisper
 import torch
 from pathlib import Path
 from config import MODEL_DIR, MODEL_NAME
 
 def download_whisper_model():
-    """Whisperモデルをダウンロードし、指定のディレクトリに保存する"""
+    """Download and save the Whisper model to the specified directory"""
     model_path = MODEL_DIR / "model.pt"
     if not model_path.exists():
         print(f"Downloading Whisper {MODEL_NAME} model...")
@@ -15,7 +15,7 @@ def download_whisper_model():
     return model_path
 
 def load_whisper_model():
-    """保存されたモデルを読み込む"""
+    """Load the saved model"""
     model_path = MODEL_DIR / "model.pt"
     if not model_path.exists():
         model_path = download_whisper_model()
@@ -26,7 +26,7 @@ def load_whisper_model():
     return model
 
 def transcribe_audio(file_path, whisper_model):
-    """音声ファイルを文字起こしする"""
+    """Transcribe an audio file"""
     try:
         result = whisper_model.transcribe(str(file_path), language='ja', fp16=False)
         return result["text"]
@@ -35,7 +35,7 @@ def transcribe_audio(file_path, whisper_model):
         return None
 
 def save_transcription_to_file(file_path, transcription):
-    """文字起こし結果をテキストファイルに保存する"""
+    """Save transcription results to a text file"""
     txt_file_path = file_path.with_suffix(".txt")
     with open(txt_file_path, "w", encoding="utf-8") as f:
         f.write(transcription)

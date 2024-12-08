@@ -1,4 +1,4 @@
-# audio_recorder.py
+# src/audio_recorder.py
 import sounddevice as sd
 import numpy as np
 import wave
@@ -20,7 +20,7 @@ class AudioRecorder:
         self.audio_queue.put(indata.copy())
 
     def start_recording(self):
-        """録音を開始する"""
+        """Start recording"""
         self.audio_data = []
         self.is_recording = True
         self.stream = sd.InputStream(
@@ -32,7 +32,7 @@ class AudioRecorder:
         self.stream.start()
 
     def stop_recording(self):
-        """録音を停止し、録音データを返す"""
+        """Stop recording and return the recorded data"""
         if hasattr(self, 'stream'):
             self.stream.stop()
             self.stream.close()
@@ -44,7 +44,7 @@ class AudioRecorder:
         return np.concatenate(self.audio_data) if self.audio_data else None
 
 def save_audio(audio_data, filename):
-    """録音データをWAVファイルとして保存する"""
+    """Save recorded data as a WAV file"""
     if isinstance(filename, Path):
         filename = str(filename)
     with wave.open(filename, 'wb') as wf:
@@ -54,7 +54,7 @@ def save_audio(audio_data, filename):
         wf.writeframes(audio_data.tobytes())
 
 def get_audio_duration(file_path):
-    """WAVファイルの再生時間を取得する"""
+    """Get the duration of a WAV file"""
     with wave.open(str(file_path), 'rb') as wf:
         frames = wf.getnframes()
         rate = wf.getframerate()
