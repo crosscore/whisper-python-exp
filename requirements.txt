@@ -1,13 +1,13 @@
-# Whisper関連
+# Whisper-related
 openai-whisper
 torch
 
-# 音声録音
+# Audio recording
 sounddevice
 numpy
 
 # UI
 streamlit
 
-# その他
+# Others
 ffmpeg-python
