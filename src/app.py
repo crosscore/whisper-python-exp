@@ -3,17 +3,34 @@ import streamlit as st
 import os
 from datetime import datetime
 from config import AUDIO_DIR, MODEL_DIR, MODEL_NAME
-from audio_recorder import AudioRecorder, save_audio, get_audio_duration
+from audio_recorder import AudioRecorder, save_audio, get_audio_duration, RealTimeAudioRecorder, RealTimeTranscriber
 from transcription import load_whisper_model, transcribe_audio, save_transcription_to_file
 
 MODEL_DIR.mkdir(exist_ok=True)
-AUDIO_DIR.mkdir(exist_ok=True)
 
 def initialize_whisper():
     """Initialize Whisper model"""
     if 'whisper_model' not in st.session_state:
         with st.spinner(f'Loading Whisper "{MODEL_NAME}" model...'):
             st.session_state.whisper_model = load_whisper_model()
+
+def initialize_session_state():
+    """Initialize session state"""
+    if 'audio_recorder' not in st.session_state:
+        st.session_state.audio_recorder = AudioRecorder()
+    if 'realtime_recorder' not in st.session_state:
+        st.session_state.realtime_recorder = RealTimeAudioRecorder()
+    if 'realtime_transcriber' not in st.session_state:
+        st.session_state.realtime_transcriber = RealTimeTranscriber(st.session_state.whisper_model)
+    if 'realtime_text' not in st.session_state:
+        st.session_state.realtime_text = ""
+
+def update_transcription(audio_file):
+    """Update real-time transcription"""
+    text = st.session_state.realtime_transcriber.transcribe_chunk(audio_file)
+    if text:
+        st.session_state.realtime_text = st.session_state.realtime_transcriber.get_full_text()
+
 
 def main():
     st.title("Voice Recorder & Transcription")

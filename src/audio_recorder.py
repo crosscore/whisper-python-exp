@@ -6,6 +6,7 @@ import queue
 from datetime import datetime
 from pathlib import Path
 from config import SAMPLE_RATE, CHANNELS, AUDIO_DIR
+from transcription import transcribe_audio
 
 class AudioRecorder:
     def __init__(self):
