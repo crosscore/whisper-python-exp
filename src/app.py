@@ -2,7 +2,7 @@
 import streamlit as st
 import os
 from datetime import datetime
-from config import AUDIO_DIR, MODEL_DIR
+from config import AUDIO_DIR, MODEL_DIR, MODEL_NAME
 from audio_recorder import AudioRecorder, save_audio, get_audio_duration
 from transcription import load_whisper_model, transcribe_audio, save_transcription_to_file
 
@@ -12,7 +12,7 @@ AUDIO_DIR.mkdir(exist_ok=True)
 def initialize_whisper():
     """Initialize Whisper model"""
     if 'whisper_model' not in st.session_state:
-        with st.spinner('Loading Whisper model...'):
+        with st.spinner(f'Loading Whisper "{MODEL_NAME}" model...'):
             st.session_state.whisper_model = load_whisper_model()
 
 def main():
