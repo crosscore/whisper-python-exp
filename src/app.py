@@ -7,6 +7,7 @@ from audio_recorder import AudioRecorder, save_audio, get_audio_duration, RealTi
 from transcription import load_whisper_model, transcribe_audio, save_transcription_to_file
 
 MODEL_DIR.mkdir(exist_ok=True)
+AUDIO_DIR.mkdir(exist_ok=True, parents=True)
 
 def initialize_whisper():
     """Initialize Whisper model"""
@@ -19,18 +20,21 @@ def initialize_session_state():
     if 'audio_recorder' not in st.session_state:
         st.session_state.audio_recorder = AudioRecorder()
     if 'realtime_recorder' not in st.session_state:
-        st.session_state.realtime_recorder = RealTimeAudioRecorder()
+        # Reduce chunk_duration for more frequent updates
+        st.session_state.realtime_recorder = RealTimeAudioRecorder(chunk_duration=0.5)
     if 'realtime_transcriber' not in st.session_state:
         st.session_state.realtime_transcriber = RealTimeTranscriber(st.session_state.whisper_model)
     if 'realtime_text' not in st.session_state:
         st.session_state.realtime_text = ""
 
-def update_transcription(audio_file):
+def update_transcription(audio_data):
     """Update real-time transcription"""
-    text = st.session_state.realtime_transcriber.transcribe_chunk(audio_file)
-    if text:
-        st.session_state.realtime_text = st.session_state.realtime_transcriber.get_full_text()
-
+    if audio_data is not None:
+        text = st.session_state.realtime_transcriber.transcribe_chunk(audio_data)
+        if text:
+            st.session_state.realtime_text = st.session_state.realtime_transcriber.get_full_text()
+            # Here we can try forcing an update if needed:
+            # st.experimental_rerun()
 
 def main():
     st.title("Voice Recorder & Transcription")
@@ -45,7 +49,7 @@ def main():
         if not st.session_state.audio_recorder.is_recording and not st.session_state.realtime_recorder.is_recording:
             if st.button("🎤 Start Recording"):
                 st.session_state.audio_recorder.start_recording()
-                st.rerun()
+                # Removed st.rerun() to avoid resetting states
 
     with col2:
         if not st.session_state.audio_recorder.is_recording and not st.session_state.realtime_recorder.is_recording:
@@ -54,7 +58,7 @@ def main():
                 st.session_state.realtime_text = ""
                 st.session_state.realtime_recorder.set_transcription_callback(update_transcription)
                 st.session_state.realtime_recorder.start_recording()
-                st.rerun()
+                # Removed st.rerun() here as well
 
     with col3:
         if st.session_state.audio_recorder.is_recording or st.session_state.realtime_recorder.is_recording:
@@ -74,6 +78,7 @@ def main():
                         save_audio(recorded_audio, filename)
                         save_transcription_to_file(filename, st.session_state.realtime_text)
                         st.success(f"Recording saved: {filename}")
+                # st.rerun() can remain here to refresh after stopping if desired
                 st.rerun()
 
     # Display recording status and real-time transcription
@@ -108,7 +113,7 @@ def main():
                         st.audio(audio_file_open.read(), format='audio/wav')
 
                 with col_controls:
-                    st.markdown("&nbsp;")
+                    st.markdown(" ")
                     col_del, col_trans = st.columns(2)
                     with col_del:
                         if st.button("🗑️", key=f"delete_{audio_file}",
@@ -122,7 +127,7 @@ def main():
 
                     with col_trans:
                         transcribe_button = st.button("📝", key=f"transcribe_{audio_file}",
-                                                    help="Transcribe this recording")
+                                                        help="Transcribe this recording")
 
                 with col_text:
                     if transcribe_button:

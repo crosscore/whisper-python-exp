@@ -24,11 +24,13 @@ class AudioRecorder:
         """Start recording"""
         self.audio_data = []
         self.is_recording = True
+        # Add blocksize for more frequent callback calls
         self.stream = sd.InputStream(
             channels=CHANNELS,
             samplerate=SAMPLE_RATE,
             dtype=np.int16,
-            callback=self.callback
+            callback=self.callback,
+            blocksize=1024
         )
         self.stream.start()
 
@@ -63,10 +65,10 @@ def get_audio_duration(file_path):
         return round(duration, 1)
 
 class RealTimeAudioRecorder(AudioRecorder):
-    def __init__(self, chunk_duration=3):
+    def __init__(self, chunk_duration=0.5):
         super().__init__()
-        self.chunk_duration = chunk_duration  # Chunk duration (seconds)
-        self.chunk_samples = int(SAMPLE_RATE * chunk_duration)
+        self.chunk_duration = chunk_duration  # Now shorter for more frequent updates
+        self.chunk_samples = int(SAMPLE_RATE * self.chunk_duration)
         self.current_chunk = []
         self.transcription_callback = None
 
@@ -79,20 +81,16 @@ class RealTimeAudioRecorder(AudioRecorder):
         if status:
             print(f'Audio callback error: {status}')
 
-        # Add audio data to queue and chunk
         self.audio_queue.put(indata.copy())
         self.current_chunk.extend(indata.flatten())
 
-        # If chunk size is exceeded, perform transcription
+        # If chunk size reached, transcribe
         if len(self.current_chunk) >= self.chunk_samples:
             chunk_data = np.array(self.current_chunk[:self.chunk_samples])
             self.current_chunk = self.current_chunk[self.chunk_samples:]
 
-            # Create a temporary WAV file and transcribe
             if self.transcription_callback:
-                temp_filename = AUDIO_DIR / f"temp_chunk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-                save_audio(chunk_data, temp_filename)
-                self.transcription_callback(temp_filename)
+                self.transcription_callback(chunk_data)
 
     def stop_recording(self):
         """Recording stop process"""
@@ -105,23 +103,22 @@ class RealTimeTranscriber:
         self.model = model
         self.full_text = []
 
-    def transcribe_chunk(self, audio_file):
+    def transcribe_chunk(self, audio_data):
         """Transcription of audio chunks"""
+        temp_filename = AUDIO_DIR / f"temp_chunk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        save_audio(audio_data, temp_filename)
         try:
-            result = transcribe_audio(audio_file, self.model)
+            result = transcribe_audio(temp_filename, self.model)
             if result:
-                self.full_text.append(result)
+                self.full_text.append(result.strip())
                 return result
         finally:
-            # Delete temporary files
-            if audio_file.exists():
-                audio_file.unlink()
+            if temp_filename.exists():
+                temp_filename.unlink()
         return None
 
     def get_full_text(self):
-        """Get the full transcript"""
         return " ".join(self.full_text)
 
     def clear(self):
-        """Clear the transcript"""
         self.full_text = []
