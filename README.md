@@ -2,7 +2,7 @@
 
 ## Project Directory Structure
 ```
-project/
+whisper-python-exp/
 ├── backend/
 │   ├── api/
 │   │   ├── __init__.py
