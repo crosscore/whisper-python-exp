@@ -1,14 +1,14 @@
 // frontend/src/components/FileUploader.tsx
 import React, { useCallback, useState, useRef } from 'react';
 import { Upload, X, FileAudio, Loader2 } from 'lucide-react';
-import { TranscriptionAPI } from '../services/api';
+import { TranscriptionAPI, TranscriptionResult } from '../services/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FileUploaderProps {
-  onUploadComplete: (result: any) => void;
+  onUploadComplete: (result: TranscriptionResult) => void;
   onError?: (error: Error) => void;
   accept?: string;
-  maxSize?: number; // in bytes
+  maxSize?: number;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = ({
@@ -35,7 +35,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   }, []);
 
   // Validate file
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     if (!file.type.startsWith('audio/') && !file.name.match(/\.(wav|mp3|m4a)$/)) {
       return '対応していないファイル形式です。WAV, MP3, M4Aファイルをアップロードしてください。';
     }
@@ -43,10 +43,26 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       return `ファイルサイズが大きすぎます。${Math.floor(maxSize / 1024 / 1024)}MB以下のファイルをアップロードしてください。`;
     }
     return null;
-  };
+  }, [maxSize]);
+
+  // Handle file upload
+  const handleUpload = useCallback(async (file: File) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      const result = await TranscriptionAPI.transcribeFile(file);
+      onUploadComplete(result);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '音声ファイルのアップロードに失敗しました。';
+      setError(errorMessage);
+      if (onError && err instanceof Error) onError(err);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [onUploadComplete, onError]);
 
   // Handle file selection
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     const validationError = validateFile(file);
     if (validationError) {
       setError(validationError);
@@ -54,25 +70,22 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       if (onError) onError(new Error(validationError));
       return;
     }
-
     setSelectedFile(file);
     setError(null);
-
     // Auto upload when file is selected
     await handleUpload(file);
-  };
+  }, [validateFile, onError, handleUpload]);
 
   // Handle drop event
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
     const { files } = e.dataTransfer;
     if (files && files[0]) {
       handleFile(files[0]);
     }
-  }, []);
+  }, [handleFile]);
 
   // Handle file input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,23 +98,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   // Handle upload button click
   const handleButtonClick = () => {
     fileInputRef.current?.click();
-  };
-
-  // Handle file upload
-  const handleUpload = async (file: File) => {
-    setIsUploading(true);
-    setError(null);
-
-    try {
-      const result = await TranscriptionAPI.transcribeFile(file);
-      onUploadComplete(result);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '音声ファイルのアップロードに失敗しました。';
-      setError(errorMessage);
-      if (onError && err instanceof Error) onError(err);
-    } finally {
-      setIsUploading(false);
-    }
   };
 
   // Reset component state

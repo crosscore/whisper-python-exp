@@ -14,13 +14,16 @@
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-slot": "^1.1.1",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.10.5",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
