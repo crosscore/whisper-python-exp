@@ -1,4 +1,4 @@
-// src/services/api.ts
+// frontend/src/services/api.ts
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000';

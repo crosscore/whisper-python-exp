@@ -1,4 +1,4 @@
-// src/components/FileUploader.tsx
+// frontend/src/components/FileUploader.tsx
 import React, { useCallback, useState, useRef } from 'react';
 import { Upload, X, FileAudio, Loader2 } from 'lucide-react';
 import { TranscriptionAPI } from '../services/api';

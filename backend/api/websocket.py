@@ -1,4 +1,4 @@
-# api/websocket.py
+# backend/api/websocket.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from typing import Dict, List
 import asyncio

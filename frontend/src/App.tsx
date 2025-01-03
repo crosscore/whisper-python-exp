@@ -1,4 +1,4 @@
-// src/App.tsx
+// frontend/src/App.tsx
 import React, { useState, useCallback } from 'react';
 import AudioRecorder from './components/AudioRecorder';
 import FileUploader from './components/FileUploader';

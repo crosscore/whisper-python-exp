@@ -1,4 +1,4 @@
-// src/components/AudioRecorder.tsx
+// frontend/src/components/AudioRecorder.tsx
 import React, { useState } from 'react';
 import useAudioRecorder from '../hooks/useAudioRecorder';
 import { Mic, Square, Pause, Play, RefreshCcw } from 'lucide-react';

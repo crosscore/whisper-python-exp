@@ -1,4 +1,4 @@
-// src/hooks/useAudioRecorder.ts
+// frontend/src/hooks/useAudioRecorder.ts
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AudioAPI } from '../services/api';
 
