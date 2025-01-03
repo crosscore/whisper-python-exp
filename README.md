@@ -49,47 +49,11 @@ whisper-python-exp/
 ## frontend settings
 ```
 (venv_whisper) yuu@Mac whisper-python-exp % npm create vite@latest frontend -- --template react-ts
-Need to install the following packages:
-create-vite@6.1.1
-Ok to proceed? (y) y
-
-
-> npx
-> create-vite frontend --template react-ts
-
-
-Scaffolding project in /Users/yuu/repos/whisper-python-exp/frontend...
-
-Done. Now run:
-
-  cd frontend
-  npm install
-  npm run dev
-
 (venv_whisper) yuu@Mac whisper-python-exp % cd frontend
 (venv_whisper) yuu@Mac frontend % npm install
-
-added 181 packages, and audited 182 packages in 21s
-
-43 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
 (venv_whisper) yuu@Mac frontend % sudo chown -R $USER:$GROUP ~/.npm
-(venv_whisper) yuu@Mac frontend % echo $GROUP
-
 (venv_whisper) yuu@Mac frontend % sudo chown -R $USER:$GROUP ~/.config
 (venv_whisper) yuu@Mac frontend % npm install axios @types/node tailwindcss postcss autoprefixer @headlessui/react @heroicons/react --force
-npm warn using --force Recommended protections disabled.
-
-added 108 packages, and audited 290 packages in 14s
-
-70 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
 (venv_whisper) yuu@Mac frontend % npx tailwindcss init -p
-
-Created Tailwind CSS config file: tailwind.config.js
-Created PostCSS config file: postcss.config.js
+(venv_whisper) yuu@Mac frontend % npm install lucide-react @radix-ui/react-slot @radix-ui/react-alert-dialog
 ```
