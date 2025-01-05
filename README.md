@@ -57,5 +57,5 @@ whisper-python-exp/
 (venv_whisper) yuu@Mac frontend % npx tailwindcss init -p
 (venv_whisper) yuu@Mac frontend % npm install lucide-react @radix-ui/react-slot @radix-ui/react-alert-dialog
 
-(venv_whisper) yuu@Mac frontend % npm install class-variance-authority clsx tailwind-merge @types/node
+(venv_whisper) yuu@Mac frontend % npm install @radix-ui/react-scroll-area class-variance-authority clsx tailwind-merge @types/node
 ```
